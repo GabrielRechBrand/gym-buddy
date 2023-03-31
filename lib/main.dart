@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy/painter/custom_background_painter.dart';
+import 'package:gym_buddy/components/workout_card.dart';
+import 'package:gym_buddy/components/workout_form.dart';
+import 'package:gym_buddy/model/workout.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,49 +38,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class CustomBackgroundPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-
-      ..color = Colors.black.withOpacity(0.05)
-      ..strokeWidth = 5.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-
-    final double spacing = 20.0;
-
-    double start = -size.height;
-    double end = size.width;
-
-    while (start < size.width) {
-      final path = Path()
-        ..moveTo(start, 0)
-        ..lineTo(end, start + size.height)
-        ..moveTo(start + size.height, 0)
-        ..lineTo(end + size.height, start + size.height);
-
-      canvas.drawPath(path, paint);
-      start += spacing;
-      end += spacing;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
-}
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
+
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  void _addWorkout(String name, String description) {
+    setState(() {
+      _workouts.add(Workout(name: name, description: description));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,15 +70,39 @@ class _MyHomePageState extends State<MyHomePage> {
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: ListView.builder(
+                      itemCount: _workouts.length,
+                      itemBuilder: (context, index) {
+                        return WorkoutCard(
+                          workout: _workouts[index],
+                          onDelete: () {
+                            setState(() {
+                              _workouts.removeAt(index);
+                            });
+                          },
+                        );
+                      },
+                    )
+                )
+              ],
             ),
           ),
         ]
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AddWorkoutForm(
+                  onSave: _addWorkout,
+                );
+              },
+          );
         },
-        tooltip: 'More',
+        tooltip: 'Add Workout',
         child: const Icon(Icons.add),
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -130,3 +130,18 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+final List<Workout> _workouts = [
+  Workout(
+    name: 'Chest Press',
+    description: '3 sets x 12 reps',
+  ),
+  Workout(
+    name: 'Lat Pulldown',
+    description: '3 sets x 12 reps',
+  ),
+  Workout(
+    name: 'Squats',
+    description: '3 sets x 12 reps',
+  ),
+];
